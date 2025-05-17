@@ -162,7 +162,7 @@ Imagen disponible en:
 ## Autoría
 
 **Maria José Romero Pozos**
-Proyecto final para la materia Backend II - Coderhouse 2025
+Proyecto final para la materia Backend III - Coderhouse 2025
 
 * [@MajoRomero23](https://github.com/MajoRomero23)
 
