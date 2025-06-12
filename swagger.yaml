@@ -1,0 +1,201 @@
+openapi: 3.0.0
+info:
+  title: API de Florería - Entrega Final
+  version: 1.0.0
+  description: Documentación de los endpoints implementados para la entrega final del curso de Backend III
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/sessions/register:
+    post:
+      summary: Registrar nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - email
+                - password
+                - age
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                age:
+                  type: integer
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+        '400':
+          description: Error de validación
+        '500':
+          description: Error del servidor
+
+  /api/sessions/login:
+    post:
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login exitoso
+        '401':
+          description: Credenciales incorrectas
+        '500':
+          description: Error del servidor
+
+  /api/sessions/current:
+    get:
+      summary: Obtener información del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario actual
+        '401':
+          description: Token no válido
+        '500':
+          description: Error del servidor
+
+  /api/products:
+    get:
+      summary: Obtener todos los productos
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Límite de productos a devolver
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Página a consultar
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Orden de los precios
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: Filtro por categoría u otros campos
+      responses:
+        '200':
+          description: Lista de productos
+        '500':
+          description: Error al obtener productos
+
+    post:
+      summary: Crear un nuevo producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - price
+                - stock
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                stock:
+                  type: integer
+                category:
+                  type: string
+      responses:
+        '201':
+          description: Producto creado
+        '400':
+          description: Error de validación
+
+  /api/carts/{cid}/purchase:
+    post:
+      summary: Finalizar compra del carrito
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: string
+          description: ID del carrito a procesar
+      responses:
+        '201':
+          description: Compra procesada y ticket generado
+        '400':
+          description: No se pudo completar la compra
+        '404':
+          description: Carrito no encontrado
+        '500':
+          description: Error del servidor
+
+  /api/mocks/users:
+    get:
+      summary: Obtener usuarios de prueba generados con faker
+      responses:
+        '200':
+          description: Lista de usuarios generados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    first_name:
+                      type: string
+                    last_name:
+                      type: string
+                    email:
+                      type: string
+                    role:
+                      type: string
+        '500':
+          description: Error al generar usuarios mock
