@@ -34,6 +34,7 @@ describe("🛒 Pruebas de Carts API", () => {
         password: "pass123"
       });
 
+
     console.log("Login response:", response.status, response.body);
 
     expect(response.status).to.equal(200);
@@ -46,8 +47,8 @@ describe("🛒 Pruebas de Carts API", () => {
       .get("/api/users/my-cart")
       .set("Authorization", `Bearer ${userToken}`);
 
-    console.log("🛒 Carrito actual:", res.status, res.body);
 
+    console.log("🛒 Carrito actual:", res.status, res.body);
     expect(res.status).to.equal(200);
     expect(res.body).to.have.property("cartId");
     testCartId = res.body.cartId;
@@ -58,8 +59,8 @@ describe("🛒 Pruebas de Carts API", () => {
       .post(`/api/carts/${testCartId}/product/${testProductId}`)
       .set("Authorization", `Bearer ${userToken}`);
 
+ 
     console.log("➕ Producto añadido:", res.status, res.body);
-
     expect(res.status).to.equal(201);
     expect(res.body.message).to.equal("Producto añadido al carrito");
   });
@@ -70,6 +71,38 @@ describe("🛒 Pruebas de Carts API", () => {
       .set("Authorization", `Bearer ${userToken}`);
 
     console.log("🎟️ Ticket generado:", res.status, res.body);
+    expect(res.status).to.equal(201);
+    expect(res.body).to.have.property("ticket");
+  });
+
+  it("No debería permitir agregar producto sin token", async () => {
+    const res = await requester
+      .post(`/api/carts/${testCartId}/product/${testProductId}`);
+
+    expect([401, 403]).to.include(res.status);
+  });
+
+  it("No debería permitir agregar producto con ID de carrito inválido", async () => {
+    const res = await requester
+      .post(`/api/carts/invalidCartId/product/${testProductId}`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect([400, 404]).to.include(res.status);
+  });
+
+
+  it("No debería permitir agregar producto con ID de carrito inválido", async () => {
+    const res = await requester
+      .post(`/api/carts/invalidCartId/product/${testProductId}`)
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect([400, 404]).to.include(res.status);
+  });
+
+  it("✅ Debería finalizar la compra y generar un ticket", async () => {
+    const res = await requester
+      .post(`/api/carts/${testCartId}/purchase`)
+      .set("Authorization", `Bearer ${userToken}`);
 
     expect(res.status).to.equal(201);
     expect(res.body).to.have.property("ticket");

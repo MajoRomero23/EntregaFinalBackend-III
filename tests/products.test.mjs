@@ -8,7 +8,6 @@ const adminCredentials = {
   password: 'admin123'
 };
 
-
 let server;
 let requester;
 let adminToken;
@@ -33,15 +32,16 @@ afterAll(async () => {
 });
 
 describe('🛍️ Products API Tests', () => {
-  describe(' Acciones del admin', () => {
+
+  describe('Acciones del admin', () => {
+    let createdProductId;
+
     beforeAll(async () => {
       const res = await requester.post('/api/sessions/login').send(adminCredentials);
       console.log("Admin Login:", res.status, res.body);
       expect(res.status).toBe(200);
       adminToken = res.body.token;
     });
-
-    let createdProductId;
 
     it('Debería permitir al admin crear un producto', async () => {
       const newProduct = {
@@ -66,13 +66,35 @@ describe('🛍️ Products API Tests', () => {
       createdProductId = res.body.product._id;
     });
 
+    it('No debería permitir crear un producto sin título', async () => {
+      const res = await requester
+        .post('/api/products')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          description: 'Sin título',
+          code: 'ERROR123',
+          price: 50,
+          stock: 5,
+          category: 'Test'
+        });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('No debería permitir eliminar producto con ID inválido', async () => {
+      const res = await requester
+        .delete('/api/products/123456')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect([400, 404]).toContain(res.status);
+    });
+
     it('Debería permitir al admin eliminar un producto', async () => {
       const res = await requester
         .delete(`/api/products/${createdProductId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       console.log("Eliminar producto:", res.status, res.body);
-
       expect(res.status).toBe(200);
     });
   });
@@ -80,7 +102,6 @@ describe('🛍️ Products API Tests', () => {
   describe('Acceso público', () => {
     it('Debería obtener productos sin autenticación', async () => {
       const res = await requester.get('/api/products');
-
       console.log("📦 Productos públicos:", res.status, res.body);
 
       expect(res.status).toBe(200);
@@ -89,3 +110,6 @@ describe('🛍️ Products API Tests', () => {
     });
   });
 });
+
+
+
